@@ -10,8 +10,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unzip source code
-      run: unzip songrequest-mod.zip
+    - name: Unzip and find project folder
+      run: |
+        unzip songrequest-mod.zip -d extracted_mod
+        PROJECT_DIR=$(find extracted_mod -maxdepth 1 -mindepth 1 -type d | head -n 1)
+        if [ -z "$PROJECT_DIR" ]; then
+          echo "No subdirectory found."
+          mv extracted_mod/* . 2>/dev/null || true
+        else
+          echo "Found project folder: $PROJECT_DIR"
+          mv "$PROJECT_DIR"/* . 2>/dev/null || true
+        fi
+        rm -rf extracted_mod
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
