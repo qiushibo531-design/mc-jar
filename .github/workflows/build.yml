@@ -19,10 +19,17 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Apply Loom Version Fix
+    - name: Force Upgrade Loom Version
       run: |
         cd songrequest-mod
-        echo "loom.ignoreDependencyLoomVersionValidation=true" >> gradle.properties
+        # 强行把所有相关文件里的 1.5.x 替换成 1.6.5
+        sed -i 's/1\.5\.[0-9]/1.6.5/g' build.gradle
+        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' build.gradle
+        sed -i 's/1\.5\.[0-9]/1.6.5/g' gradle.properties
+        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' gradle.properties
+        sed -i 's/1\.5\.[0-9]/1.6.5/g' settings.gradle
+        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' settings.gradle
+        echo "版本号强制篡改完毕！"
 
     - name: Build with Gradle
       run: |
