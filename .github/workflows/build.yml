@@ -19,6 +19,11 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Apply Loom Version Fix
+      run: |
+        cd songrequest-mod
+        echo "loom.ignoreDependencyLoomVersionValidation=true" >> gradle.properties
+
     - name: Build with Gradle
       run: |
         cd songrequest-mod
