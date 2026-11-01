@@ -10,18 +10,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unzip and find project folder
+    - name: Unzip and debug structure
       run: |
         unzip songrequest-mod.zip -d extracted_mod
-        PROJECT_DIR=$(find extracted_mod -maxdepth 1 -mindepth 1 -type d | head -n 1)
-        if [ -z "$PROJECT_DIR" ]; then
-          echo "No subdirectory found."
-          mv extracted_mod/* . 2>/dev/null || true
-        else
-          echo "Found project folder: $PROJECT_DIR"
-          mv "$PROJECT_DIR"/* . 2>/dev/null || true
-        fi
+        echo "=== 打印当前目录所有文件 ==="
+        ls -la
+        echo "=== 打印解压后的文件结构 ==="
+        find extracted_mod -maxdepth 2
+        
+        # 强制把所有解压出来的文件移到根目录（无论嵌套了几层）
+        mv extracted_mod/*/* ./ 2>/dev/null || true
+        mv extracted_mod/* ./ 2>/dev/null || true
         rm -rf extracted_mod
+        
+        echo "=== 移动后的根目录文件 ==="
+        ls -la
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -29,11 +32,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
     - name: Build with Gradle
-      run: ./gradlew build
+      run: |
+        chmod +x gradlew
+        ./gradlew build
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
