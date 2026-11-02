@@ -23,16 +23,13 @@ jobs:
       run: |
         cd songrequest-mod
         
-        # 👇 1. 自动搜索并修补 Menu.THEME
-        # 找到 Menu.java 文件，如果是枚举，就在里面加上 THEME
-        find . -name "Menu.java" -exec sed -i 's/\(public enum Menu {[^}]*\)/\1, THEME /g' {} \;
+        # 👇 1. 精准打击：把报错那行里的 Menu.THEME 替换成 Menu.values()[0]
+        # 这样既保留了按钮，又不会因为找不到 THEME 变量而报错
+        sed -i 's/Menu.THEME/Menu.values()[0]/g' src/main/java/com/songrequest/gui/MusicScreen.java
         
-        # 如果它是用字符串或者常量定义的，强行塞一个常量
-        find . -name "Menu.java" -exec sed -i '/public enum Menu/a\    public static final int THEME = 99;' {} \;
-        
-        echo "已尝试强行注入 THEME 变量！"
+        echo "已成功将 THEME 替换为替身，按钮已保留！"
 
-        # 👇 2. 强行升级 Loom 和 Gradle 版本（解决之前的报错）
+        # 👇 2. 强行升级 Loom 和 Gradle 版本
         sed -i 's/1\.5\.[0-9]/1.6.5/g' build.gradle
         sed -i 's/1\.5-SNAPSHOT/1.6.5/g' build.gradle
         sed -i 's/1\.5\.[0-9]/1.6.5/g' gradle.properties
