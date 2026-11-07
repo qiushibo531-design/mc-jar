@@ -10,11 +10,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unzip source code
+    - name: Unzip and Find Gradle
       run: |
         unzip DangoMusic-1.20.4-source.zip
-        echo "=== 解压后的文件列表 ==="
+        echo "=== 看看解压出了什么文件 ==="
         ls -la
+        
+        # 核心黑科技：全盘搜索 gradlew 文件
+        GRADLEW_PATH=$(find . -name "gradlew" -type f | head -n 1)
+        
+        if [ -z "$GRADLEW_PATH" ]; then
+          echo "❌ 错误：找遍了所有文件夹都没找到 gradlew！这可能不是个 Gradle 项目。"
+          exit 1
+        else
+          echo "✅ 找到 gradlew 在: $GRADLEW_PATH"
+          # 提取它所在的文件夹路径
+          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+          echo "✅ 项目真正的根目录是: $PROJECT_DIR"
+          # 把路径存起来给下一步用
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+        fi
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -24,13 +39,8 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        # 如果解压出来有文件夹，就进去（兼容处理）
-        if [ -d "DangoMusic-1.20.4-source" ]; then
-          cd DangoMusic-1.20.4-source
-        elif [ -d "DangoMusic-main" ]; then
-          cd DangoMusic-main
-        fi
-        
+        # 进入刚才找到的真实目录
+        cd "${{ env.PROJECT_DIR }}"
         chmod +x gradlew
         ./gradlew build
 
@@ -38,7 +48,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: mod-jar
-        # 无论在哪个目录生成的 jar，都统统一网打尽！
-        path: |
-          build/libs/*.jar
-          **/build/libs/*.jar
+        # 全局搜索生成的 jar 包，不管它藏在哪一层
+        path: '**/build/libs/*.jar'
