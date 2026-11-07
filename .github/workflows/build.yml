@@ -1,4 +1,4 @@
-name: Build Minecraft Mod
+name: Build DangoMusic
 
 on: [push, workflow_dispatch]
 
@@ -11,7 +11,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Unzip source code
-      run: unzip DangoMusic-main.zip
+      run: |
+        unzip DangoMusic-1.20.4-source.zip
+        echo "=== 解压后的文件列表 ==="
+        ls -la
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -21,7 +24,13 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        cd DangoMusic-main
+        # 如果解压出来有文件夹，就进去（兼容处理）
+        if [ -d "DangoMusic-1.20.4-source" ]; then
+          cd DangoMusic-1.20.4-source
+        elif [ -d "DangoMusic-main" ]; then
+          cd DangoMusic-main
+        fi
+        
         chmod +x gradlew
         ./gradlew build
 
@@ -29,4 +38,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: mod-jar
-        path: DangoMusic-main/build/libs/*.jar
+        # 无论在哪个目录生成的 jar，都统统一网打尽！
+        path: |
+          build/libs/*.jar
+          **/build/libs/*.jar
