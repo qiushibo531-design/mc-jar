@@ -11,7 +11,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Unzip source code
-      run: unzip songrequest-mod.zip
+      run: unzip DangoMusic-main.zip
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -19,28 +19,9 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Patch Code and Upgrade Environment
-      run: |
-        cd songrequest-mod
-        
-        # 👇 1. 精准打击：把报错那行里的 Menu.THEME 替换成 Menu.values()[0]
-        # 这样既保留了按钮，又不会因为找不到 THEME 变量而报错
-        sed -i 's/Menu.THEME/Menu.values()[0]/g' src/main/java/com/songrequest/gui/MusicScreen.java
-        
-        echo "已成功将 THEME 替换为替身，按钮已保留！"
-
-        # 👇 2. 强行升级 Loom 和 Gradle 版本
-        sed -i 's/1\.5\.[0-9]/1.6.5/g' build.gradle
-        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' build.gradle
-        sed -i 's/1\.5\.[0-9]/1.6.5/g' gradle.properties
-        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' gradle.properties
-        sed -i 's/1\.5\.[0-9]/1.6.5/g' settings.gradle
-        sed -i 's/1\.5-SNAPSHOT/1.6.5/g' settings.gradle
-        sed -i 's/gradle-[0-9]\.[0-9]/gradle-8.8/g' gradle/wrapper/gradle-wrapper.properties
-
     - name: Build with Gradle
       run: |
-        cd songrequest-mod
+        cd DangoMusic-main
         chmod +x gradlew
         ./gradlew build
 
@@ -48,4 +29,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: mod-jar
-        path: songrequest-mod/build/libs/*.jar
+        path: DangoMusic-main/build/libs/*.jar
