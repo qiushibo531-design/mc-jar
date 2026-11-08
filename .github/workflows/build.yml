@@ -11,7 +11,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Unzip source
-        run: unzip -q DangoMusic-1.20.4-source.zip
+        run: |
+          ls -la
+          for f in *.zip; do unzip -oq "$f"; done
+          ls
 
       - uses: actions/setup-java@v4
         with:
