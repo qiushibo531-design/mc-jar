@@ -23,11 +23,18 @@ jobs:
           gradle-version: 8.14
 
       - name: Build
-        working-directory: MC-JAR
-        run: gradle build --no-daemon
+        run: |
+          PROJECT_DIR="$(find . -name settings.gradle -not -path '*/.git/*' | head -1 | xargs -r dirname)"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "没找到 settings.gradle，仓库里缺少构建文件。当前目录结构：" >&2
+            find . -maxdepth 3 -not -path '*/.git*' >&2
+            exit 1
+          fi
+          echo "Gradle 工程目录：$PROJECT_DIR"
+          gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: mtr-ctrl
-          path: MC-JAR/build/libs/*.jar
+          path: "**/build/libs/*.jar"
