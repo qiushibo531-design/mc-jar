@@ -13,12 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ⚠️ 修改1：把 source.zip 改成你实际的 zip 文件名
       - name: Unzip source
         run: |
-          unzip -o source.zip
+          unzip -o mtr-ctrl-source.zip
           echo "=== 解压后的目录结构 ==="
           find . -type d -maxdepth 3
+          echo ""
+          echo "=== 查找 build.gradle ==="
+          find . -name "build.gradle"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -26,16 +28,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # ⚠️ 修改2：把 modern 改成解压后包含 build.gradle 的实际目录名
-      - name: Build with Gradle
-        working-directory: ./modern
+      - name: Find project directory and build
         run: |
+          PROJECT_DIR=$(find . -name "build.gradle" -exec dirname {} \; | head -1)
+          echo "项目目录: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
           chmod +x gradlew
           ./gradlew build --no-daemon
 
-      # ⚠️ 修改3：把 build/libs/*.jar 改成实际 jar 输出路径
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
           name: mc-jar
-          path: ./modern/build/libs/*.jar
+          path: "**/build/libs/*.jar"
