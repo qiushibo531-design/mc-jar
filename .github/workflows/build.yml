@@ -14,13 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Unzip source
-        run: |
-          unzip -o mtr-ctrl-source.zip
-          echo "=== 解压后的目录结构 ==="
-          find . -type d -maxdepth 3
-          echo ""
-          echo "=== 查找 build.gradle ==="
-          find . -name "build.gradle"
+        run: unzip -o mtr-ctrl-source.zip
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -28,16 +22,30 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Find project directory and build
+      - name: Debug - 打印完整目录结构
         run: |
-          PROJECT_DIR=$(find . -name "build.gradle" -exec dirname {} \; | head -1)
-          echo "项目目录: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
+          echo "========== 完整目录树 =========="
+          find . -type f | head -100
+          echo "========== 查找 gradlew =========="
+          find . -name "gradlew"
+          echo "========== 查找 pom.xml =========="
+          find . -name "pom.xml"
+          echo "========== 查找 build.gradle =========="
+          find . -name "build.gradle"
+
+      - name: Build with Gradle (if gradlew exists)
+        if: ${{ env.HAS_GRADLEW == 'true' }}
+        run: |
+          GRADLEW_PATH=$(find . -name "gradlew" | head -1)
+          GRADLE_DIR=$(dirname "$GRADLEW_PATH")
+          cd "$GRADLE_DIR"
           chmod +x gradlew
           ./gradlew build --no-daemon
 
-      - name: Upload jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: mc-jar
-          path: "**/build/libs/*.jar"
+      - name: Build with Maven (if pom.xml exists)
+        if: ${{ env.HAS_POM == 'true' }}
+        run: |
+          POM_PATH=$(find . -name "pom.xml" | head -1)
+          POM_DIR=$(dirname "$POM_PATH")
+          cd "$POM_DIR"
+          mvn package -DskipTests
