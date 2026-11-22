@@ -17,6 +17,17 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Unpack source zip
+        run: |
+          ZIP="$(find . -maxdepth 2 -name '*.zip' | head -1)"
+          if [ -z "$ZIP" ]; then
+            echo "没找到 zip 源码包" >&2
+            find . -maxdepth 2 >&2
+            exit 1
+          fi
+          echo "解压：$ZIP"
+          python3 -m zipfile -e "$ZIP" .
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -26,8 +37,8 @@ jobs:
         run: |
           PROJECT_DIR="$(find . -name settings.gradle -not -path '*/.git/*' | head -1 | xargs -r dirname)"
           if [ -z "$PROJECT_DIR" ]; then
-            echo "没找到 settings.gradle，仓库里缺少构建文件。当前目录结构：" >&2
-            find . -maxdepth 3 -not -path '*/.git*' >&2
+            echo "没找到 settings.gradle" >&2
+            find . -maxdepth 3 >&2
             exit 1
           fi
           echo "Gradle 工程目录：$PROJECT_DIR"
