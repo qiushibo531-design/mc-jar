@@ -23,10 +23,11 @@ jobs:
           gradle-version: 8.14
 
       - name: Build
+        working-directory: MC-JAR
         run: gradle build --no-daemon
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: mtr-ctrl
-          path: build/libs/*.jar
+          path: MC-JAR/build/libs/*.jar
