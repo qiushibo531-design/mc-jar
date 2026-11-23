@@ -27,6 +27,19 @@ jobs:
           fi
           echo "解压：$ZIP"
           python3 -m zipfile -e "$ZIP" .
+          PROJECT_DIR="$(find . -name settings.gradle -not -path '*/.git/*' | head -1 | xargs -r dirname)"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "没找到 settings.gradle" >&2
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Gradle 工程目录：$PROJECT_DIR"
+
+      - name: Download MTR jar
+        run: |
+          mkdir -p "$PROJECT_DIR/libs"
+          curl -fL --retry 3 -o "$PROJECT_DIR/libs/MTR-fabric-4.0.5+1.20.4-server.jar" "https://cdn.modrinth.com/data/XKPAmI6u/versions/Xurz5xWy/MTR-fabric-4.0.5%2B1.20.4.jar"
+          ls -la "$PROJECT_DIR/libs"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -34,15 +47,7 @@ jobs:
           gradle-version: 8.14
 
       - name: Build
-        run: |
-          PROJECT_DIR="$(find . -name settings.gradle -not -path '*/.git/*' | head -1 | xargs -r dirname)"
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "没找到 settings.gradle" >&2
-            find . -maxdepth 3 >&2
-            exit 1
-          fi
-          echo "Gradle 工程目录：$PROJECT_DIR"
-          gradle -p "$PROJECT_DIR" build --no-daemon
+        run: gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
